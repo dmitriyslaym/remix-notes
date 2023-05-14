@@ -1,12 +1,13 @@
 import type { LinksFunction } from "@remix-run/node";
 import {
+  isRouteErrorResponse,
   Links,
   LiveReload,
   Meta,
   Outlet,
   Scripts,
-  ScrollRestoration,
-} from "@remix-run/react";
+  ScrollRestoration, useRouteError,
+} from '@remix-run/react';
 import mainCss from './styles/main.css';
 import MainNavigation from '~/components/MainNavigation';
 
@@ -39,13 +40,29 @@ export default function App() {
   );
 }
 
-export function ErrorBoundary(...args: any) {
-  console.log('args', args);
+export function ErrorBoundary() {
+  const error = useRouteError();
+  console.log('Root ErrorBoundary error', error);
+
+  const content = isRouteErrorResponse(error) ? (
+    <div className="error">
+      <h1>Global error</h1>
+      <p>Status: {error.status}</p>
+      <p>{error.data}</p>
+    </div>
+  ) : (
+    <div className="error">
+      <h1>Error has occurred</h1>
+      <p>{(error as Error).message}</p>
+    </div>
+  )
+
   return (
     <html lang="en">
     <head>
       <meta charSet="utf-8" />
       <meta name="viewport" content="width=device-width,initial-scale=1" />
+      <title>Error Page</title>
       <Meta />
       <Links />
     </head>
@@ -53,15 +70,10 @@ export function ErrorBoundary(...args: any) {
     <header>
       <MainNavigation />
     </header>
-    <div className="error">
-      <h1>Error has occurred in Notes</h1>
-      {/*<p>{error.message}</p>*/}
-    </div>
-    <ScrollRestoration />
+    {content}
     <Scripts />
     <LiveReload />
     </body>
     </html>
   )
 }
-
